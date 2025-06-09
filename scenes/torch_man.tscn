@@ -1,0 +1,79 @@
+[gd_scene load_steps=12 format=3 uid="uid://csrp18f22ht6q"]
+
+[ext_resource type="Script" uid="uid://bsabm6bl7ab13" path="res://scripts/enemy.gd" id="1_jgm7m"]
+[ext_resource type="Texture2D" uid="uid://cseo0q28p8tpv" path="res://assets/Tiny Swords (Update 010)/Factions/Goblins/Troops/Torch/Blue/Torch_Blue.png" id="2_pkkmj"]
+[ext_resource type="PackedScene" uid="uid://bc7fs5rgwsdlb" path="res://scenes/kill_zone.tscn" id="3_m4u07"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yoksf"]
+atlas = ExtResource("2_pkkmj")
+region = Rect2(0, 192, 192, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wlbjr"]
+atlas = ExtResource("2_pkkmj")
+region = Rect2(192, 192, 192, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pl1fr"]
+atlas = ExtResource("2_pkkmj")
+region = Rect2(384, 192, 192, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lotfc"]
+atlas = ExtResource("2_pkkmj")
+region = Rect2(576, 192, 192, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_k63g5"]
+atlas = ExtResource("2_pkkmj")
+region = Rect2(768, 192, 192, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ey40b"]
+atlas = ExtResource("2_pkkmj")
+region = Rect2(960, 192, 192, 192)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_rah4e"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yoksf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wlbjr")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pl1fr")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lotfc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_k63g5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ey40b")
+}],
+"loop": true,
+"name": &"run",
+"speed": 10.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_v5t73"]
+size = Vector2(33, 37)
+
+[node name="Torch_man" type="Node2D"]
+script = ExtResource("1_jgm7m")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_rah4e")
+animation = &"run"
+autoplay = "run"
+frame_progress = 0.298039
+
+[node name="Kill zone" parent="." instance=ExtResource("3_m4u07")]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Kill zone"]
+position = Vector2(0.5, 6.5)
+shape = SubResource("RectangleShape2D_v5t73")
+
+[node name="RayCastRight" type="RayCast2D" parent="."]
+target_position = Vector2(46, -1)
+
+[node name="RayCastLeft" type="RayCast2D" parent="."]
+target_position = Vector2(-41, -1)
