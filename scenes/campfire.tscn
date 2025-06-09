@@ -1,0 +1,98 @@
+[gd_scene load_steps=14 format=3 uid="uid://ccv6b0uqdmhk6"]
+
+[ext_resource type="Texture2D" uid="uid://ckf0ypwpr0mfr" path="res://assets/GandalfHardcore Platformer Assets/Campfire sheet.png" id="1_in3x8"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_w5g8o"]
+atlas = ExtResource("1_in3x8")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6e2rm"]
+atlas = ExtResource("1_in3x8")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4o3uv"]
+atlas = ExtResource("1_in3x8")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vygw5"]
+atlas = ExtResource("1_in3x8")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_blyav"]
+atlas = ExtResource("1_in3x8")
+region = Rect2(128, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_a63mc"]
+atlas = ExtResource("1_in3x8")
+region = Rect2(0, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_idu7l"]
+atlas = ExtResource("1_in3x8")
+region = Rect2(32, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4k7sb"]
+atlas = ExtResource("1_in3x8")
+region = Rect2(64, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_okkhi"]
+atlas = ExtResource("1_in3x8")
+region = Rect2(96, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hx5nd"]
+atlas = ExtResource("1_in3x8")
+region = Rect2(128, 32, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_oqa56"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_w5g8o")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6e2rm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4o3uv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vygw5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_blyav")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_a63mc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_idu7l")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4k7sb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_okkhi")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hx5nd")
+}],
+"loop": true,
+"name": &"burn",
+"speed": 10.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_bhpei"]
+radius = 6.08276
+
+[node name="Campfire" type="StaticBody2D"]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, -16)
+sprite_frames = SubResource("SpriteFrames_oqa56")
+animation = &"burn"
+autoplay = "burn"
+frame_progress = 0.140521
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -5)
+shape = SubResource("CircleShape2D_bhpei")
+disabled = true

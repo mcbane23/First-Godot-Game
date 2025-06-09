@@ -1,0 +1,73 @@
+[gd_scene load_steps=11 format=3 uid="uid://c68xqkypd3le6"]
+
+[ext_resource type="Texture2D" uid="uid://0aufgonnh5rt" path="res://assets/coins-chests-etc-2-0.png" id="1_3m7ul"]
+[ext_resource type="Script" uid="uid://mdxjxdetv5ru" path="res://scripts/blue_gem.gd" id="1_aexr8"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4cql8"]
+atlas = ExtResource("1_3m7ul")
+region = Rect2(80, 368, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_brcqs"]
+atlas = ExtResource("1_3m7ul")
+region = Rect2(96, 368, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_g21ig"]
+atlas = ExtResource("1_3m7ul")
+region = Rect2(112, 368, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jelxq"]
+atlas = ExtResource("1_3m7ul")
+region = Rect2(128, 368, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gyiq0"]
+atlas = ExtResource("1_3m7ul")
+region = Rect2(144, 368, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5igk3"]
+atlas = ExtResource("1_3m7ul")
+region = Rect2(160, 368, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_mnh2r"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4cql8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_brcqs")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_g21ig")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jelxq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gyiq0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5igk3")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_4uvjl"]
+radius = 13.0384
+
+[node name="blue gem" type="Area2D"]
+collision_mask = 2
+script = ExtResource("1_aexr8")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+scale = Vector2(2, 2)
+sprite_frames = SubResource("SpriteFrames_mnh2r")
+autoplay = "default"
+frame_progress = 0.234863
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 2)
+shape = SubResource("CircleShape2D_4uvjl")
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]

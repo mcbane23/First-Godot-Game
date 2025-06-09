@@ -1,0 +1,43 @@
+[gd_scene load_steps=6 format=3 uid="uid://bmyeg410vkr5q"]
+
+[ext_resource type="Texture2D" uid="uid://by06h1yuvn6y4" path="res://assets/ui_controls/generic_stick_left.png" id="1_4rjyr"]
+[ext_resource type="Script" uid="uid://qd3t5i3pajil" path="res://scripts/mobile_controls.gd" id="1_y1te1"]
+[ext_resource type="Texture2D" uid="uid://i55v3dn4mk00" path="res://assets/ui_controls/generic_stick_right.png" id="2_y1te1"]
+[ext_resource type="Texture2D" uid="uid://brpgtnbo6bnp5" path="res://assets/ui_controls/generic_stick_up.png" id="3_puaky"]
+[ext_resource type="Texture2D" uid="uid://do4gkvpx1a7ol" path="res://assets/ui_controls/generic_button_pressed.png" id="4_yr8f1"]
+
+[node name="MobileControls" type="CanvasLayer"]
+script = ExtResource("1_y1te1")
+
+[node name="Left" type="TouchScreenButton" parent="."]
+position = Vector2(30, 490)
+texture_normal = ExtResource("1_4rjyr")
+passby_press = true
+action = "game_left"
+
+[node name="Right" type="TouchScreenButton" parent="."]
+position = Vector2(220, 490)
+texture_normal = ExtResource("2_y1te1")
+passby_press = true
+action = "game_right"
+
+[node name="Jump" type="TouchScreenButton" parent="."]
+position = Vector2(836, 490)
+texture_normal = ExtResource("3_puaky")
+passby_press = true
+action = "game_jump"
+
+[node name="Attack" type="TouchScreenButton" parent="."]
+position = Vector2(1000, 490)
+texture_normal = ExtResource("4_yr8f1")
+passby_press = true
+action = "game_attack"
+
+[connection signal="pressed" from="Left" to="." method="_on_left_pressed"]
+[connection signal="released" from="Left" to="." method="_on_left_released"]
+[connection signal="pressed" from="Right" to="." method="_on_right_pressed"]
+[connection signal="released" from="Right" to="." method="_on_right_released"]
+[connection signal="pressed" from="Jump" to="." method="_on_jump_pressed"]
+[connection signal="released" from="Jump" to="." method="_on_jump_released"]
+[connection signal="pressed" from="Attack" to="." method="_on_attack_pressed"]
+[connection signal="released" from="Attack" to="." method="_on_attack_released"]
