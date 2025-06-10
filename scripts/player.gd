@@ -1,9 +1,14 @@
 extends CharacterBody2D
-@onready var animation_player = $AnimationPlayer
+class_name PlayerController
 
-const SPEED = 300.0
-const JUMP_VELOCITY = -430.0
-var orientation = 1
+#@onready var animation_player = $AnimationPlayer2
+
+@export var speed = 10
+@export var jump_power = 10
+
+var speed_multiplier = 30
+var jump_multiplier = -30
+var direction = 0
 
 # Get the gravity from the project settings to be synced with RigidBody nodes.
 var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
@@ -13,27 +18,22 @@ func _physics_process(delta):
 	# Add the gravity.
 	if not is_on_floor():
 		velocity.y += gravity * delta
-
-	if orientation == -1:
-		animation_player.flip_h = true;
-	elif orientation == 1:
-		animation_player.flip_h = false;
 		
 	# Handle jump.
 	if Input.is_action_just_pressed("game_jump") and is_on_floor():
-		velocity.y = JUMP_VELOCITY
+		velocity.y = jump_power * jump_multiplier
+		#animation_player.play("jump");
 		
 	# Handle attack.
-	if Input.is_action_just_pressed("game_attack"):
-		animation_player.play("attack");
+	#if Input.is_action_just_pressed("game_attack"):
+		#animation_player.play("attack");
 		
 	# Get the input direction and handle the movement/deceleration.
 	# As good practice, you should replace UI actions with custom gameplay actions.
-	var direction = Input.get_axis("game_left", "game_right")
-	orientation = direction;
+	direction = Input.get_axis("game_left", "game_right")
 	if direction:
-		velocity.x = direction * SPEED
+		velocity.x = direction * speed * speed_multiplier
 	else:
-		velocity.x = move_toward(velocity.x, 0, SPEED)
+		velocity.x = move_toward(velocity.x, 0, speed * speed_multiplier)
 
 	move_and_slide()
