@@ -3,7 +3,6 @@
 .godot/
 .import/
 export.cfg
-export_presets.cfg
 
 # Mono-specific ignores
 .mono/
@@ -13,3 +12,4 @@ android/build/
 
 # Build artifacts
 *.apk
+build/

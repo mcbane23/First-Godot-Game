@@ -1,0 +1,41 @@
+name: Build Android debug APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-android-debug:
+    name: Export Android debug APK
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.4
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Move export templates into place
+        run: |
+          mkdir -v -p ~/.local/share/godot/export_templates
+          mv /root/.local/share/godot/export_templates/4.4.stable ~/.local/share/godot/export_templates/4.4.stable || true
+
+      - name: Create build directory
+        run: mkdir -v -p build
+
+      - name: Export debug APK
+        run: godot --headless --verbose --export-debug "Android" build/First-Game-debug.apk
+
+      - name: Publish debug build as a GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: debug-${{ github.run_number }}
+          name: "Debug build #${{ github.run_number }}"
+          body: |
+            Automated debug APK build from commit ${{ github.sha }} on branch `${{ github.ref_name }}`.
+
+            This is a debug-signed development build, not a production release.
+          prerelease: true
+          files: build/First-Game-debug.apk
