@@ -6,27 +6,69 @@ on:
 permissions:
   contents: write
 
+env:
+  GODOT_VERSION: 4.4-stable
+  GODOT_TEMPLATE_DIR: 4.4.stable
+  ANDROID_BUILD_TOOLS: 33.0.2
+  ANDROID_PLATFORM: android-33
+
 jobs:
   build-android-debug:
     name: Export Android debug APK
     runs-on: ubuntu-latest
-    container:
-      image: barichello/godot-ci:4.4
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Move export templates into place
-        run: |
-          mkdir -v -p ~/.local/share/godot/export_templates
-          mv /root/.local/share/godot/export_templates/4.4.stable ~/.local/share/godot/export_templates/4.4.stable || true
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
 
-      - name: Create build directory
-        run: mkdir -v -p build
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install matching Android platform/build-tools
+        run: |
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager "platform-tools" "platforms;${ANDROID_PLATFORM}" "build-tools;${ANDROID_BUILD_TOOLS}"
+
+      - name: Download Godot and export templates
+        run: |
+          curl -sSL "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -o godot.zip
+          curl -sSL "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_export_templates.tpz" -o templates.tpz
+          unzip -q godot.zip
+          chmod +x "Godot_v${GODOT_VERSION}_linux.x86_64"
+          mkdir -p ~/.local/share/godot/export_templates/${GODOT_TEMPLATE_DIR}
+          unzip -q templates.tpz -d /tmp/templates_extract
+          mv /tmp/templates_extract/templates/* ~/.local/share/godot/export_templates/${GODOT_TEMPLATE_DIR}/
+
+      - name: Generate debug keystore
+        run: |
+          mkdir -p ~/.android
+          keytool -genkeypair -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android \
+            -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+
+      - name: Configure Godot editor settings
+        run: |
+          mkdir -p ~/.config/godot
+          cat > ~/.config/godot/editor_settings-4.4.tres <<EOF
+          [gd_resource type="EditorSettings" format=3]
+
+          [resource]
+          export/android/android_sdk_path = "$ANDROID_HOME"
+          export/android/java_sdk_path = "$JAVA_HOME"
+          export/android/debug_keystore = "$HOME/.android/debug.keystore"
+          export/android/debug_keystore_user = "androiddebugkey"
+          export/android/debug_keystore_pass = "android"
+          EOF
 
       - name: Export debug APK
-        run: godot --headless --verbose --export-debug "Android" build/First-Game-debug.apk
+        run: |
+          mkdir -p build
+          "./Godot_v${GODOT_VERSION}_linux.x86_64" --headless --verbose --export-debug "Android" build/First-Game-debug.apk
 
       - name: Publish debug build as a GitHub Release
         uses: softprops/action-gh-release@v2
