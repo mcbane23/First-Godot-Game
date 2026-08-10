@@ -1,8 +1,6 @@
 extends CharacterBody2D
 class_name PlayerController
 
-#@onready var animation_player = $AnimationPlayer2
-
 @export var speed = 10
 @export var jump_power = 10
 
@@ -22,12 +20,7 @@ func _physics_process(delta):
 	# Handle jump.
 	if Input.is_action_just_pressed("game_jump") and is_on_floor():
 		velocity.y = jump_power * jump_multiplier
-		#animation_player.play("jump");
-		
-	# Handle attack.
-	#if Input.is_action_just_pressed("game_attack"):
-		#animation_player.play("attack");
-		
+
 	# Get the input direction and handle the movement/deceleration.
 	# As good practice, you should replace UI actions with custom gameplay actions.
 	direction = Input.get_axis("game_left", "game_right")
