@@ -1,5 +1,5 @@
 extends Area2D
 
 func _on_body_entered(body):
-	print("+1 gem")
+	Score.add_gem()
 	queue_free()

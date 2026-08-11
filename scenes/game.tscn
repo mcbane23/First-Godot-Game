@@ -1,7 +1,9 @@
-[gd_scene load_steps=21 format=4 uid="uid://ohk0kf6yfnbp"]
+[gd_scene load_steps=23 format=4 uid="uid://ohk0kf6yfnbp"]
 
+[ext_resource type="Script" uid="uid://dq3xh9tr6vkw2" path="res://scripts/game.gd" id="1_game"]
 [ext_resource type="PackedScene" uid="uid://crwmxmeknmbe" path="res://scenes/player.tscn" id="1_3s7n4"]
 [ext_resource type="PackedScene" uid="uid://bmyeg410vkr5q" path="res://scenes/mobile_controls.tscn" id="1_kvuet"]
+[ext_resource type="PackedScene" uid="uid://bx8mz4crk7v9n" path="res://scenes/game_ui.tscn" id="1_gameui"]
 [ext_resource type="TileSet" uid="uid://bhqk1v2c5wj0g" path="res://resources/tileset.tres" id="2_gee14"]
 [ext_resource type="PackedScene" uid="uid://cn8vlxx8vb6bo" path="res://scenes/platform.tscn" id="6_8nqno"]
 [ext_resource type="PackedScene" uid="uid://c68xqkypd3le6" path="res://scenes/blue_gem.tscn" id="7_04t8w"]
@@ -148,8 +150,11 @@ _data = {
 }
 
 [node name="Game" type="Node2D"]
+script = ExtResource("1_game")
 
 [node name="MobileControls" parent="." instance=ExtResource("1_kvuet")]
+
+[node name="GameUI" parent="." instance=ExtResource("1_gameui")]
 
 [node name="ParallaxBackground" type="ParallaxBackground" parent="."]
 
