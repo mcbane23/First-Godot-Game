@@ -54,37 +54,38 @@ jobs:
 
       # The keystore must be the SAME on every run. Generating one per run gives
       # each APK a different signature, and Android refuses to install a build
-      # over an existing app signed by a different key. See README "Android debug
-      # signing" for the one-time setup of these secrets.
+      # over an existing app signed by a different key.
+      #
+      # Two sources, in order: the ANDROID_DEBUG_KEYSTORE_BASE64 secret if it is
+      # set, otherwise the debug.keystore committed at the repository root. The
+      # committed key is a development convenience and is public to anyone who
+      # can read the repository, so it must not sign builds handed to testers or
+      # published. Adding the secret is all it takes to switch over; see README
+      # "Android debug signing".
       - name: Restore debug keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_DEBUG_KEYSTORE_BASE64 }}
-          # Same name read as a variable. Actions exposes secrets and variables
-          # through different contexts, and they are added from adjacent tabs of
-          # the same settings page, so saving one where the other was meant is
-          # easy to do and otherwise looks identical to having saved nothing.
-          KEYSTORE_BASE64_AS_VARIABLE: ${{ vars.ANDROID_DEBUG_KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_DEBUG_KEYSTORE_PASSWORD || 'android' }}
         run: |
-          if [ -z "$KEYSTORE_BASE64" ]; then
-            if [ -n "$KEYSTORE_BASE64_AS_VARIABLE" ]; then
-              echo "::error::ANDROID_DEBUG_KEYSTORE_BASE64 exists as a repository VARIABLE, but it has to be a SECRET. Remove it from the Variables tab and re-add it under Settings -> Secrets and variables -> Actions -> Secrets."
-            else
-              echo "::error::Secret ANDROID_DEBUG_KEYSTORE_BASE64 is not set, or is empty, for Actions in this repository. It must be a repository secret on the 'Actions' tab: Dependabot and Codespaces secrets use separate stores that workflows cannot read. See the 'Android debug signing' section of README.md."
-            fi
-            exit 1
-          fi
-
           mkdir -p ~/.android
-          if ! printf '%s' "$KEYSTORE_BASE64" | base64 -d > ~/.android/debug.keystore 2>/dev/null; then
-            echo "::error::ANDROID_DEBUG_KEYSTORE_BASE64 is set but is not valid base64. It must hold the base64 TEXT of debug.keystore; the raw binary file cannot be stored as a secret."
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "Using the ANDROID_DEBUG_KEYSTORE_BASE64 secret."
+            if ! printf '%s' "$KEYSTORE_BASE64" | base64 -d > ~/.android/debug.keystore 2>/dev/null; then
+              echo "::error::ANDROID_DEBUG_KEYSTORE_BASE64 is set but is not valid base64. It must hold the base64 TEXT of debug.keystore; the raw binary file cannot be stored as a secret."
+              exit 1
+            fi
+          elif [ -f debug.keystore ]; then
+            echo "::warning::Signing with the debug.keystore committed to this repository. Anyone who can read the repository can sign builds that Android accepts as updates to this app. Set the ANDROID_DEBUG_KEYSTORE_BASE64 secret before distributing builds."
+            cp debug.keystore ~/.android/debug.keystore
+          else
+            echo "::error::No signing key available: the ANDROID_DEBUG_KEYSTORE_BASE64 secret is unset and debug.keystore is not present at the repository root. See the 'Android debug signing' section of README.md."
             exit 1
           fi
 
-          echo "Restored keystore ($(stat -c%s ~/.android/debug.keystore) bytes)."
+          echo "Keystore is $(stat -c%s ~/.android/debug.keystore) bytes."
           if ! keytool -list -v -keystore ~/.android/debug.keystore \
                  -storepass "$KEYSTORE_PASSWORD" > /tmp/keystore-info.txt 2>&1; then
-            echo "::error::The decoded file is not a readable keystore, or ANDROID_DEBUG_KEYSTORE_PASSWORD does not match the one it was created with. keytool reported:"
+            echo "::error::That file is not a readable keystore, or ANDROID_DEBUG_KEYSTORE_PASSWORD does not match the one it was created with. keytool reported:"
             head -n 10 /tmp/keystore-info.txt
             exit 1
           fi

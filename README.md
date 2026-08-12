@@ -31,16 +31,36 @@ On mobile/touch platforms, on-screen controls (`scenes/mobile_controls.tscn`) pr
 
 ## Android debug signing
 
-The **Build Android debug APK** workflow signs every APK with a keystore restored
-from repository secrets. This is required for updates to work: Android refuses to
-install a build over an existing app that was signed with a different key, so the
-signing key has to stay identical across builds.
+The **Build Android debug APK** workflow signs every APK with the same keystore
+on every run. This is required for updates to work: Android refuses to install a
+build over an existing app that was signed with a different key, so the signing
+key has to stay identical across builds.
 
-This repository is public, so the keystore is **not** committed here. Set it up
-once with the GitHub CLI.
+The workflow takes that key from one of two places, in order:
 
-**1. Create a debug keystore** (keep the generated file somewhere safe). `keytool`
-ships with the JDK:
+1. the `ANDROID_DEBUG_KEYSTORE_BASE64` repository secret, if it is set;
+2. otherwise `debug.keystore`, committed at the root of this repository.
+
+### Current setup: the committed keystore
+
+**During development this repository carries `debug.keystore` in git**, so builds
+work without any secret configured. It is a throwaway development key.
+
+This repository is public, which means **the signing key is public too**. Anyone
+who can read the repository can sign an APK that Android will accept as an update
+to this app. That is a deliberate trade for the development phase, while builds
+only go to the people working on the game.
+
+**Move to the secret before handing builds to testers.** Committing a key also
+puts it in git history permanently, so the switch means generating a *new* key,
+not reusing this one — and once testers have installed a build, changing the
+signing key forces them to uninstall before they can install again. Doing it
+before the first tester build avoids that.
+
+### Switching to a secret
+
+**1. Create a fresh debug keystore** (keep the generated file somewhere safe, and
+do not commit it). `keytool` ships with the JDK:
 
 ```bash
 keytool -genkeypair -v -keystore debug.keystore \
@@ -75,20 +95,31 @@ gh secret list
 
 `ANDROID_DEBUG_KEYSTORE_BASE64` must appear in that list. Adding it through the
 web UI works too, but it has to be a **repository secret** under
-*Settings → Secrets and variables → Actions → Secrets* — the neighbouring
-**Variables** tab, and the Dependabot and Codespaces tabs, are separate stores
-that this workflow cannot read.
+*Settings → Secrets and variables → Actions → Secrets*. The neighbouring
+**Variables** tab, the Dependabot and Codespaces tabs, and per-environment
+secrets are all separate stores that this workflow cannot read — a secret saved
+in one of those looks exactly like no secret at all.
+
+**3. Remove the committed key**, so builds cannot silently fall back to it:
+
+```bash
+git rm debug.keystore
+```
+
+Once the secret is set the workflow prefers it automatically; no workflow edit is
+needed either way.
 
 | Secret | Required | Default |
 |--------|----------|---------|
-| `ANDROID_DEBUG_KEYSTORE_BASE64` | yes | — |
+| `ANDROID_DEBUG_KEYSTORE_BASE64` | no, while `debug.keystore` is committed | — |
 | `ANDROID_DEBUG_KEYSTORE_USER` | no | `androiddebugkey` |
 | `ANDROID_DEBUG_KEYSTORE_PASSWORD` | no | `android` |
 
-If you used non-default `-alias`/`-storepass` values in step 1, set the two
-optional secrets to match. The workflow fails with an explanatory message if
-`ANDROID_DEBUG_KEYSTORE_BASE64` is missing, rather than silently producing an
-APK that cannot be installed as an update.
+If you used non-default `-alias`/`-storepass` values when creating the keystore,
+set the two optional secrets to match. The build logs which source it used, warns
+on every run that falls back to the committed key, and fails with an explanatory
+message if neither source is available — rather than silently producing an APK
+that cannot be installed as an update.
 
 Keep a backup of `debug.keystore`. If it is lost, future builds get a new
 signature and everyone has to uninstall the app before installing again.
