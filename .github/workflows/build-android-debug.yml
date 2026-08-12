@@ -59,17 +59,37 @@ jobs:
       - name: Restore debug keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_DEBUG_KEYSTORE_BASE64 }}
+          # Same name read as a variable. Actions exposes secrets and variables
+          # through different contexts, and they are added from adjacent tabs of
+          # the same settings page, so saving one where the other was meant is
+          # easy to do and otherwise looks identical to having saved nothing.
+          KEYSTORE_BASE64_AS_VARIABLE: ${{ vars.ANDROID_DEBUG_KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_DEBUG_KEYSTORE_PASSWORD || 'android' }}
         run: |
           if [ -z "$KEYSTORE_BASE64" ]; then
-            echo "::error::Secret ANDROID_DEBUG_KEYSTORE_BASE64 is not set. Builds would otherwise be signed with a throwaway key and could not be installed as updates. See the 'Android debug signing' section of README.md for the one-time setup."
+            if [ -n "$KEYSTORE_BASE64_AS_VARIABLE" ]; then
+              echo "::error::ANDROID_DEBUG_KEYSTORE_BASE64 exists as a repository VARIABLE, but it has to be a SECRET. Remove it from the Variables tab and re-add it under Settings -> Secrets and variables -> Actions -> Secrets."
+            else
+              echo "::error::Secret ANDROID_DEBUG_KEYSTORE_BASE64 is not set, or is empty, for Actions in this repository. It must be a repository secret on the 'Actions' tab: Dependabot and Codespaces secrets use separate stores that workflows cannot read. See the 'Android debug signing' section of README.md."
+            fi
             exit 1
           fi
+
           mkdir -p ~/.android
-          echo "$KEYSTORE_BASE64" | base64 -d > ~/.android/debug.keystore
-          echo "Restored keystore ($(stat -c%s ~/.android/debug.keystore) bytes). Signing certificate:"
-          keytool -list -v -keystore ~/.android/debug.keystore -storepass "$KEYSTORE_PASSWORD" \
-            | grep -E "Alias name|SHA256:" || true
+          if ! printf '%s' "$KEYSTORE_BASE64" | base64 -d > ~/.android/debug.keystore 2>/dev/null; then
+            echo "::error::ANDROID_DEBUG_KEYSTORE_BASE64 is set but is not valid base64. It must hold the base64 TEXT of debug.keystore; the raw binary file cannot be stored as a secret."
+            exit 1
+          fi
+
+          echo "Restored keystore ($(stat -c%s ~/.android/debug.keystore) bytes)."
+          if ! keytool -list -v -keystore ~/.android/debug.keystore \
+                 -storepass "$KEYSTORE_PASSWORD" > /tmp/keystore-info.txt 2>&1; then
+            echo "::error::The decoded file is not a readable keystore, or ANDROID_DEBUG_KEYSTORE_PASSWORD does not match the one it was created with. keytool reported:"
+            head -n 10 /tmp/keystore-info.txt
+            exit 1
+          fi
+          echo "Signing certificate:"
+          grep -E "Alias name|SHA256:" /tmp/keystore-info.txt || true
 
       - name: Configure Godot editor settings
         env:
