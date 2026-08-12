@@ -1,6 +1,13 @@
 name: Build Android debug APK
 
+# Builds automatically once a pull request lands on main. Pushing straight to
+# main also triggers it, so every commit that reaches main produces an APK.
+# workflow_dispatch keeps the manual "Run workflow" button for one-off builds,
+# for example after fixing a secret without changing any tracked file.
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -45,13 +52,49 @@ jobs:
           unzip -q templates.tpz -d /tmp/templates_extract
           mv /tmp/templates_extract/templates/* ~/.local/share/godot/export_templates/${GODOT_TEMPLATE_DIR}/
 
-      - name: Generate debug keystore
+      # The keystore must be the SAME on every run. Generating one per run gives
+      # each APK a different signature, and Android refuses to install a build
+      # over an existing app signed by a different key. See README "Android debug
+      # signing" for the one-time setup of these secrets.
+      - name: Restore debug keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_DEBUG_KEYSTORE_BASE64 }}
+          # Same name read as a variable. Actions exposes secrets and variables
+          # through different contexts, and they are added from adjacent tabs of
+          # the same settings page, so saving one where the other was meant is
+          # easy to do and otherwise looks identical to having saved nothing.
+          KEYSTORE_BASE64_AS_VARIABLE: ${{ vars.ANDROID_DEBUG_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_DEBUG_KEYSTORE_PASSWORD || 'android' }}
         run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            if [ -n "$KEYSTORE_BASE64_AS_VARIABLE" ]; then
+              echo "::error::ANDROID_DEBUG_KEYSTORE_BASE64 exists as a repository VARIABLE, but it has to be a SECRET. Remove it from the Variables tab and re-add it under Settings -> Secrets and variables -> Actions -> Secrets."
+            else
+              echo "::error::Secret ANDROID_DEBUG_KEYSTORE_BASE64 is not set, or is empty, for Actions in this repository. It must be a repository secret on the 'Actions' tab: Dependabot and Codespaces secrets use separate stores that workflows cannot read. See the 'Android debug signing' section of README.md."
+            fi
+            exit 1
+          fi
+
           mkdir -p ~/.android
-          keytool -genkeypair -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android \
-            -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          if ! printf '%s' "$KEYSTORE_BASE64" | base64 -d > ~/.android/debug.keystore 2>/dev/null; then
+            echo "::error::ANDROID_DEBUG_KEYSTORE_BASE64 is set but is not valid base64. It must hold the base64 TEXT of debug.keystore; the raw binary file cannot be stored as a secret."
+            exit 1
+          fi
+
+          echo "Restored keystore ($(stat -c%s ~/.android/debug.keystore) bytes)."
+          if ! keytool -list -v -keystore ~/.android/debug.keystore \
+                 -storepass "$KEYSTORE_PASSWORD" > /tmp/keystore-info.txt 2>&1; then
+            echo "::error::The decoded file is not a readable keystore, or ANDROID_DEBUG_KEYSTORE_PASSWORD does not match the one it was created with. keytool reported:"
+            head -n 10 /tmp/keystore-info.txt
+            exit 1
+          fi
+          echo "Signing certificate:"
+          grep -E "Alias name|SHA256:" /tmp/keystore-info.txt || true
 
       - name: Configure Godot editor settings
+        env:
+          KEYSTORE_USER: ${{ secrets.ANDROID_DEBUG_KEYSTORE_USER || 'androiddebugkey' }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_DEBUG_KEYSTORE_PASSWORD || 'android' }}
         run: |
           mkdir -p ~/.config/godot
           cat > ~/.config/godot/editor_settings-4.4.tres <<EOF
@@ -61,14 +104,21 @@ jobs:
           export/android/android_sdk_path = "$ANDROID_HOME"
           export/android/java_sdk_path = "$JAVA_HOME"
           export/android/debug_keystore = "$HOME/.android/debug.keystore"
-          export/android/debug_keystore_user = "androiddebugkey"
-          export/android/debug_keystore_pass = "android"
+          export/android/debug_keystore_user = "$KEYSTORE_USER"
+          export/android/debug_keystore_pass = "$KEYSTORE_PASSWORD"
           EOF
+
+      # Android will not install a build whose versionCode is lower than the
+      # installed one, so derive it from the run number to keep it increasing.
+      - name: Set version code from run number
+        run: |
+          sed -i "s|^version/code=.*|version/code=${{ github.run_number }}|" export_presets.cfg
+          grep -E "^version/(code|name)=" export_presets.cfg
 
       - name: Export debug APK
         run: |
           mkdir -p build
-          "./Godot_v${GODOT_VERSION}_linux.x86_64" --headless --verbose --export-debug "Android" build/First-Game-debug.apk
+          "./Godot_v${GODOT_VERSION}_linux.x86_64" --headless --verbose --export-debug "Android" build/Knights-debug.apk
 
       - name: Publish debug build as a GitHub Release
         uses: softprops/action-gh-release@v2
@@ -80,4 +130,4 @@ jobs:
 
             This is a debug-signed development build, not a production release.
           prerelease: true
-          files: build/First-Game-debug.apk
+          files: build/Knights-debug.apk
