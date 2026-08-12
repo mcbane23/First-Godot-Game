@@ -44,8 +44,18 @@ jobs:
 
       - name: Download Godot and export templates
         run: |
-          curl -sSL "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -o godot.zip
-          curl -sSL "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_export_templates.tpz" -o templates.tpz
+          # --fail matters as much as the retries: without it curl treats an
+          # error page as a successful download and writes it to the output
+          # file, so the build fails later with "not a zipfile" instead of
+          # reporting the HTTP error where it happened.
+          download() {
+            curl --fail --silent --show-error --location \
+              --retry 5 --retry-delay 5 --retry-all-errors \
+              "$1" -o "$2"
+          }
+          download "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" godot.zip
+          download "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_export_templates.tpz" templates.tpz
+          ls -l godot.zip templates.tpz
           unzip -q godot.zip
           chmod +x "Godot_v${GODOT_VERSION}_linux.x86_64"
           mkdir -p ~/.local/share/godot/export_templates/${GODOT_TEMPLATE_DIR}
