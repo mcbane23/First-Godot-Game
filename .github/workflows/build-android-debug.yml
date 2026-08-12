@@ -2,10 +2,13 @@ name: Build Android debug APK
 
 # Builds automatically once a pull request lands on main. Pushing straight to
 # main also triggers it, so every commit that reaches main produces an APK.
+# workflow_dispatch keeps the manual "Run workflow" button for one-off builds,
+# for example after fixing a secret without changing any tracked file.
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: write
