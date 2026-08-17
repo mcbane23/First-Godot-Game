@@ -17,9 +17,31 @@ A small 2D platformer built with Godot 4.4, targeting desktop and mobile.
 |--------|------------------|
 | Move   | A / D or ← / →   |
 | Jump   | Space or W       |
-| Attack | Ctrl or Enter *(input action exists but isn't wired up to gameplay yet)* |
+| Attack | Ctrl or Enter    |
 
 On mobile/touch platforms, on-screen controls (`scenes/mobile_controls.tscn`) provide the same actions.
+
+## Combat
+
+The hero swings their sword with the attack button. The swing only connects in
+front of them, so which way they are facing matters, and each swing damages a
+given enemy at most once.
+
+Enemies have their own health and show a small bar above their head once they
+have been hurt. Touching an enemy costs the hero health rather than killing them
+outright, and after a hit the hero briefly blinks and cannot be hurt again — long
+enough to get clear. Tougher enemies hit harder, take more hits, and are worth
+more points. The hero's health bar sits under the score; when it empties the
+level restarts, as it does when the hero falls out of the world.
+
+| Enemy | Health | Damage per touch | Points per hit | Points per kill |
+|-------|--------|------------------|----------------|-----------------|
+| Torch goblin | 45 | 10 | 10 | 50 |
+| TNT goblin   | 75 | 25 | 15 | 120 |
+
+The hero has 100 health and deals 15 damage per swing. All of those numbers are
+exported properties on `scripts/player.gd` and `scripts/enemy.gd`, so they can be
+tuned per enemy in the inspector without touching code.
 
 ## Project structure
 

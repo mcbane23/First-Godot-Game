@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=4 uid="uid://ohk0kf6yfnbp"]
+[gd_scene load_steps=24 format=4 uid="uid://ohk0kf6yfnbp"]
 
 [ext_resource type="Script" uid="uid://dq3xh9tr6vkw2" path="res://scripts/game.gd" id="1_game"]
 [ext_resource type="PackedScene" uid="uid://crwmxmeknmbe" path="res://scenes/player.tscn" id="1_3s7n4"]
@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://bc7fs5rgwsdlb" path="res://scenes/kill_zone.tscn" id="8_icgcv"]
 [ext_resource type="PackedScene" uid="uid://ccv6b0uqdmhk6" path="res://scenes/campfire.tscn" id="11_r7jj0"]
 [ext_resource type="PackedScene" uid="uid://csrp18f22ht6q" path="res://scenes/torch_man.tscn" id="12_335hg"]
+[ext_resource type="PackedScene" uid="uid://bldjdmrk77fox" path="res://scenes/tnt_man.tscn" id="13_tntmn"]
 
 [sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_pfwvj"]
 
@@ -307,4 +308,12 @@ position = Vector2(1607, 183)
 
 [node name="Torch_man" parent="Enemies" instance=ExtResource("12_335hg")]
 position = Vector2(856, 286)
+scale = Vector2(0.7, 0.7)
+
+[node name="Torch_man2" parent="Enemies" instance=ExtResource("12_335hg")]
+position = Vector2(1930, -162)
+scale = Vector2(0.7, 0.7)
+
+[node name="TNT_man" parent="Enemies" instance=ExtResource("13_tntmn")]
+position = Vector2(2400, -383)
 scale = Vector2(0.7, 0.7)
