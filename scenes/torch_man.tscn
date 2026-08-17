@@ -1,8 +1,7 @@
-[gd_scene load_steps=12 format=3 uid="uid://csrp18f22ht6q"]
+[gd_scene load_steps=13 format=3 uid="uid://csrp18f22ht6q"]
 
 [ext_resource type="Script" uid="uid://bsabm6bl7ab13" path="res://scripts/enemy.gd" id="1_jgm7m"]
 [ext_resource type="Texture2D" uid="uid://cseo0q28p8tpv" path="res://assets/Tiny Swords (Update 010)/Factions/Goblins/Troops/Torch/Blue/Torch_Blue.png" id="2_pkkmj"]
-[ext_resource type="PackedScene" uid="uid://bc7fs5rgwsdlb" path="res://scenes/kill_zone.tscn" id="3_m4u07"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_yoksf"]
 atlas = ExtResource("2_pkkmj")
@@ -57,8 +56,26 @@ animations = [{
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_v5t73"]
 size = Vector2(33, 37)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hpbg"]
+bg_color = Color(0.0588235, 0.0588235, 0.0705882, 0.784314)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hpfill"]
+bg_color = Color(0.827451, 0.211765, 0.211765, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
 [node name="Torch_man" type="Node2D"]
 script = ExtResource("1_jgm7m")
+max_health = 45.0
+contact_damage = 10.0
+points_per_hit = 10
+points_per_kill = 50
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_rah4e")
@@ -66,14 +83,36 @@ animation = &"run"
 autoplay = "run"
 frame_progress = 0.298039
 
-[node name="Kill zone" parent="." instance=ExtResource("3_m4u07")]
+[node name="Hitbox" type="Area2D" parent="."]
+collision_layer = 4
+collision_mask = 2
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Kill zone"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
 position = Vector2(0.5, 6.5)
 shape = SubResource("RectangleShape2D_v5t73")
+
+[node name="HealthBar" type="ProgressBar" parent="."]
+offset_left = -20.0
+offset_top = -34.0
+offset_right = 20.0
+offset_bottom = -27.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_hpbg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_hpfill")
+max_value = 45.0
+value = 45.0
+show_percentage = false
 
 [node name="RayCastRight" type="RayCast2D" parent="."]
 target_position = Vector2(46, -1)
 
 [node name="RayCastLeft" type="RayCast2D" parent="."]
 target_position = Vector2(-41, -1)
+
+[node name="LedgeRight" type="RayCast2D" parent="."]
+position = Vector2(30, 0)
+target_position = Vector2(0, 60)
+
+[node name="LedgeLeft" type="RayCast2D" parent="."]
+position = Vector2(-30, 0)
+target_position = Vector2(0, 60)
